@@ -1,11 +1,7 @@
 import Vue from 'vue'
 import App from './App.vue'
-import VueLayers from 'vuelayers'
-import 'vuelayers/lib/style.css' // needs css-loader
 
-Vue.use(VueLayers,  {
-  dataProjection: 'EPSG:4326',
-})
+import './assets/styles.js';
 
 Vue.config.productionTip = false
 

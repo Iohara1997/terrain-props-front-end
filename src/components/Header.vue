@@ -93,7 +93,10 @@ export default{
     }
 
     #login-item a{
-        color: var(--color-background-nav);
+        color: rgb(28, 97, 28);
+    }
+    #menu-login a:hover{
+        text-decoration: underline;
     }
 
 </style>
