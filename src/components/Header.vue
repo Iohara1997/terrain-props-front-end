@@ -48,7 +48,7 @@ export default{
     #logo-site a{
         display: flex;
         align-items: center;
-        font-size: 25px;
+        font-size: 30px;
     }
 
     #menu{
@@ -65,8 +65,18 @@ export default{
     }
 
     ul li{
+        border: 2px solid var(--color-background-nav);
+        padding: 5px;
+        transition: transform 0.6s ease-in-out;  
+        transition: box-shadow 0.2s ease-in-out;
         list-style-type: none;
         margin: 15px;
+    }
+
+    ul li:hover{
+        border: 1px solid var(--color-background-home);
+        transform: scale(1.5); 
+        box-shadow: 0 5px 15px rgba(0,0,0,0.6);
     }
 
     #menu-login{
