@@ -20,8 +20,91 @@ import { Icon, Style } from "ol/style";
 import VectorSource from "ol/source/Vector";
 import Select from "ol/interaction/Select";
 import Overlay from "ol/Overlay";
+const httpClient = require("../http/http-client.js");
+import MousePosition from 'ol/control/MousePosition';
+import {createStringXY} from 'ol/coordinate';
+import {defaults as defaultControls} from 'ol/control';
+import OSM from 'ol/source/OSM';
+import {fromLonLat} from 'ol/proj';
 
 // import {Modify} from 'ol/interaction';
+
+const rome = new Feature({
+  geometry: new Point(fromLonLat([12.5, 41.9])),
+});
+
+const london = new Feature({
+  geometry: new Point(fromLonLat([-0.12755, 51.507222])),
+});
+
+const madrid = new Feature({
+  geometry: new Point(fromLonLat([-3.683333, 40.4])),
+});
+const paris = new Feature({
+  geometry: new Point(fromLonLat([2.353, 48.8566])),
+});
+const berlin = new Feature({
+  geometry: new Point(fromLonLat([13.3884, 52.5169])),
+});
+
+rome.setStyle(
+  new Style({
+    image: new Icon({
+      color: '#BADA55',
+      crossOrigin: 'anonymous',
+      // For Internet Explorer 11
+      imgSize: [20, 20],
+      src: 'data/square.svg',
+    }),
+  })
+);
+
+london.setStyle(
+  new Style({
+    image: new Icon({
+      color: 'rgba(255, 0, 0, .5)',
+      crossOrigin: 'anonymous',
+      src: 'data/bigdot.png',
+      scale: 0.2,
+    }),
+  })
+);
+
+madrid.setStyle(
+  new Style({
+    image: new Icon({
+      crossOrigin: 'anonymous',
+      src: 'data/bigdot.png',
+      scale: 0.2,
+    }),
+  })
+);
+
+paris.setStyle(
+  new Style({
+    image: new Icon({
+      color: '#8959A8',
+      crossOrigin: 'anonymous',
+      // For Internet Explorer 11
+      imgSize: [20, 20],
+      src: 'data/dot.svg',
+    }),
+  })
+);
+
+berlin.setStyle(
+  new Style({
+    image: new Icon({
+      crossOrigin: 'anonymous',
+      // For Internet Explorer 11
+      imgSize: [20, 20],
+      src: 'data/dot.svg',
+    }),
+  })
+);
+const vectorSource = new VectorSource({
+  features: [rome, london, madrid, paris, berlin],
+});
 
 // Criação do ponto
 const iconFeature = new Feature({
@@ -46,8 +129,8 @@ iconFeature.setStyle(iconStyle);
 
 // Criação do ponto
 const iconFeature2 = new Feature({
-  geometry: new Point([-57, -1]),
-  name: "Lugar Desconhecido",
+  geometry: new Point([-2549214.2737, 0.8569]),
+  name: "",
   population: 4000,
   rainfall: 500,
 });
@@ -65,10 +148,6 @@ const iconStyle2 = new Style({
 // adicionando o estilo definido para o ponto/pin
 iconFeature2.setStyle(iconStyle2);
 
-const vectorSource = new VectorSource({
-  features: [iconFeature, iconFeature2],
-});
-
 const vectorLayer = new VectorLayer({
   source: vectorSource,
 });
@@ -76,26 +155,20 @@ const vectorLayer = new VectorLayer({
 // select interaction working on "click"
 const selectClick = new Select();
 
-// const modify = new Modify({
-//   hitDetection: vectorLayer,
-//   source: vectorSource,
-// });
-
-// const target = document.getElementById('ol-map');
-
-// modify.on(['modifystart', 'modifyend'], function (evt) {
-//   target.style.cursor = evt.type === 'modifystart' ? 'grabbing' : 'pointer';
-// });
+const mousePositionControl = new MousePosition({
+  coordinateFormat: createStringXY(4),
+  projection: 'EPSG:4326',
+});
 
 export default {
   name: "MapContainer",
   components: {},
-  props: {},
   data() {
     return {
-      map: null,
-    };
+      map: null
+    }
   },
+  props: {},
   mounted() {
     const container = document.getElementById("popup");
     const content = document.getElementById("popup-content");
@@ -117,6 +190,7 @@ export default {
     };
 
     this.map = new Map({
+      controls: defaultControls().extend([mousePositionControl]),
       target: "ol-map",
       layers: [
         new TileLayer({
@@ -125,27 +199,17 @@ export default {
           }),
         }),
         vectorLayer,
+        new TileLayer({
+          source: new OSM(),
+         }),
       ],
-
       overlays: [overlay],
-
       view: new View({
         zoom: 6,
         projection: "EPSG:4326",
-        center: proj.fromLonLat([-22.9, 0]),
-        //center: [0, 0],
-        constrainResolution: true,
+        center: proj.fromLonLat([-22.9, 0])
       }),
     });
-
-    // this.map.on('singleclick', function (evt) {
-    //   const coordinate = evt.coordinate;
-    //   //const hdms = toStringHDMS(toLonLat(coordinate));
-
-    //   content.innerHTML = '<p>You clicked here:</p><code>' + coordinate + '</code>';
-    //   overlay.setPosition(coordinate);
-    // });
-    //this.map.addInteraction(modify);
 
     this.map.addInteraction(selectClick);
     selectClick.on("select", (evt) => {
@@ -158,57 +222,61 @@ export default {
       overlay.setPosition(coordinate);
       //console.log(evt);
     });
+    this.map.on('singleclick', (e) => {
+      const coordinates = e.coordinate;
+      httpClient.sendMapInfo({lat: coordinates[1], lon: coordinates[0]}); 
+    });
   },
 };
+
 </script>
 
-<style>
-#ol-map {
-  width: 600px;
-  height: 500px;
-  border-radius: 4px;
-}
+<style scoped>
+  #ol-map {
+    width: 100%;
+    height: 500px;
+  }
 
-.ol-popup {
-  position: absolute;
-  background-color: white;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
-  padding: 15px;
-  border-radius: 10px;
-  border: 1px solid #cccccc;
-  bottom: 12px;
-  left: -50px;
-  min-width: 280px;
-}
-.ol-popup:after,
-.ol-popup:before {
-  top: 100%;
-  border: solid transparent;
-  content: " ";
-  height: 0;
-  width: 0;
-  position: absolute;
-  pointer-events: none;
-}
-.ol-popup:after {
-  border-top-color: white;
-  border-width: 10px;
-  left: 48px;
-  margin-left: -10px;
-}
-.ol-popup:before {
-  border-top-color: #cccccc;
-  border-width: 11px;
-  left: 48px;
-  margin-left: -11px;
-}
-.ol-popup-closer {
-  text-decoration: none;
-  position: absolute;
-  top: 2px;
-  right: 8px;
-}
-.ol-popup-closer:after {
-  content: "✖";
-}
+  .ol-popup {
+    position: absolute;
+    background-color: white;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+    padding: 15px;
+    border-radius: 10px;
+    border: 1px solid #cccccc;
+    bottom: 12px;
+    left: -50px;
+    min-width: 280px;
+  }
+  .ol-popup:after,
+  .ol-popup:before {
+    top: 100%;
+    border: solid transparent;
+    content: " ";
+    height: 0;
+    width: 0;
+    position: absolute;
+    pointer-events: none;
+  }
+  .ol-popup:after {
+    border-top-color: white;
+    border-width: 10px;
+    left: 48px;
+    margin-left: -10px;
+  }
+  .ol-popup:before {
+    border-top-color: #cccccc;
+    border-width: 11px;
+    left: 48px;
+    margin-left: -11px;
+  }
+  .ol-popup-closer {
+    text-decoration: none;
+    position: absolute;
+    top: 2px;
+    right: 8px;
+  }
+  .ol-popup-closer:after {
+    content: "✖";
+  }
 </style>
