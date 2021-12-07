@@ -106,47 +106,21 @@ const vectorSource = new VectorSource({
   features: [rome, london, madrid, paris, berlin],
 });
 
-// Criação do ponto
-const iconFeature = new Feature({
-  geometry: new Point([-55.9, 0]),
-  name: "Lugar Desconhecido",
-  escola: "IFSP",
-  alunos: 100,
-});
-
-// Aparência do ponto/pin
-const iconStyle = new Style({
-  image: new Icon({
-    anchor: [0.5, 46],
-    anchorXUnits: "pixels",
-    anchorYUnits: "pixels",
-    src: require("../assets/marker3.png"),
+const center = this.map.getView().getCenter();
+console.log(center);
+const feature = new Feature(new Point([0,0]));
+const pinLayer = new VectorLayer ({
+  source: new VectorSource ({
+    features: [feature]
   }),
+  style: new Style ({
+    image: new Icon({
+      src: require('@/assets/marker3.png')
+    })
+  })
 });
 
-// adicionando o estilo definido para o ponto/pin
-iconFeature.setStyle(iconStyle);
-
-// Criação do ponto
-const iconFeature2 = new Feature({
-  geometry: new Point([-2549214.2737, 0.8569]),
-  name: "",
-  population: 4000,
-  rainfall: 500,
-});
-
-// Aparência do ponto/pin
-const iconStyle2 = new Style({
-  image: new Icon({
-    anchor: [0.5, 46],
-    anchorXUnits: "pixels",
-    anchorYUnits: "pixels",
-    src: require("../assets/marker3.png"),
-  }),
-});
-
-// adicionando o estilo definido para o ponto/pin
-iconFeature2.setStyle(iconStyle2);
+this.map.addLayer(pinLayer);
 
 const vectorLayer = new VectorLayer({
   source: vectorSource,
