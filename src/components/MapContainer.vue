@@ -20,12 +20,14 @@ import { Icon, Style } from "ol/style";
 import VectorSource from "ol/source/Vector";
 import Select from "ol/interaction/Select";
 import Overlay from "ol/Overlay";
-const httpClient = require("../http/http-client.js");
-import MousePosition from 'ol/control/MousePosition';
-import {createStringXY} from 'ol/coordinate';
-import {defaults as defaultControls} from 'ol/control';
-import OSM from 'ol/source/OSM';
-import {fromLonLat} from 'ol/proj';
+// const httpClient = require("../http/http-client.js");
+import MousePosition from "ol/control/MousePosition";
+import { createStringXY } from "ol/coordinate";
+import { defaults as defaultControls } from "ol/control";
+// import OSM from "ol/source/OSM";
+import { fromLonLat } from "ol/proj";
+// import {toLonLat} from 'ol/proj';
+import {click} from 'ol/events/condition';
 
 // import {Modify} from 'ol/interaction';
 
@@ -50,11 +52,11 @@ const berlin = new Feature({
 rome.setStyle(
   new Style({
     image: new Icon({
-      color: '#BADA55',
-      crossOrigin: 'anonymous',
+      color: "#BADA55",
+      crossOrigin: "anonymous",
       // For Internet Explorer 11
       imgSize: [20, 20],
-      src: 'data/square.svg',
+      src: "data/square.svg",
     }),
   })
 );
@@ -62,9 +64,9 @@ rome.setStyle(
 london.setStyle(
   new Style({
     image: new Icon({
-      color: 'rgba(255, 0, 0, .5)',
-      crossOrigin: 'anonymous',
-      src: 'data/bigdot.png',
+      color: "rgba(255, 0, 0, .5)",
+      crossOrigin: "anonymous",
+      src: "data/bigdot.png",
       scale: 0.2,
     }),
   })
@@ -73,8 +75,8 @@ london.setStyle(
 madrid.setStyle(
   new Style({
     image: new Icon({
-      crossOrigin: 'anonymous',
-      src: 'data/bigdot.png',
+      crossOrigin: "anonymous",
+      src: "data/bigdot.png",
       scale: 0.2,
     }),
   })
@@ -83,11 +85,11 @@ madrid.setStyle(
 paris.setStyle(
   new Style({
     image: new Icon({
-      color: '#8959A8',
-      crossOrigin: 'anonymous',
+      color: "#8959A8",
+      crossOrigin: "anonymous",
       // For Internet Explorer 11
       imgSize: [20, 20],
-      src: 'data/dot.svg',
+      src: "data/dot.svg",
     }),
   })
 );
@@ -95,43 +97,47 @@ paris.setStyle(
 berlin.setStyle(
   new Style({
     image: new Icon({
-      crossOrigin: 'anonymous',
+      crossOrigin: "anonymous",
       // For Internet Explorer 11
       imgSize: [20, 20],
-      src: 'data/dot.svg',
+      src: "data/dot.svg",
     }),
   })
 );
-const vectorSource = new VectorSource({
-  features: [rome, london, madrid, paris, berlin],
-});
+// const vectorSource = new VectorSource({
+//   features: [rome, london, madrid, paris, berlin],
+// });
 
-const center = this.map.getView().getCenter();
-console.log(center);
-const feature = new Feature(new Point([0,0]));
-const pinLayer = new VectorLayer ({
-  source: new VectorSource ({
-    features: [feature]
+//************ TESTE PINO **************/
+// const center = this.map.getView().getCenter();
+// console.log(center);
+const feature = new Feature(new Point([0, 0]));
+const pinLayer = new VectorLayer({
+  source: new VectorSource({
+    features: [feature],
   }),
-  style: new Style ({
+  style: new Style({
     image: new Icon({
-      src: require('@/assets/marker3.png')
-    })
-  })
+      src: require("@/assets/marker3.png"),
+    }),
+  }),
 });
 
-this.map.addLayer(pinLayer);
+// this.map.addLayer(pinLayer);
 
-const vectorLayer = new VectorLayer({
-  source: vectorSource,
-});
+// const vectorLayer = new VectorLayer({
+//   source: vectorSource,
+// });
 
 // select interaction working on "click"
-const selectClick = new Select();
+const selectClick = new Select({
+  condition: click,
+  style: null,
+});
 
 const mousePositionControl = new MousePosition({
   coordinateFormat: createStringXY(4),
-  projection: 'EPSG:4326',
+  projection: "EPSG:4326",
 });
 
 export default {
@@ -139,8 +145,8 @@ export default {
   components: {},
   data() {
     return {
-      map: null
-    }
+      map: null,
+    };
   },
   props: {},
   mounted() {
@@ -172,85 +178,118 @@ export default {
             url: "http://a.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png",
           }),
         }),
-        vectorLayer,
-        new TileLayer({
-          source: new OSM(),
-         }),
+        //vectorLayer,
+        pinLayer,
+        // new TileLayer({
+        //   source: new OSM(),
+        // }),
       ],
       overlays: [overlay],
       view: new View({
         zoom: 6,
         projection: "EPSG:4326",
-        center: proj.fromLonLat([-22.9, 0])
+        center: proj.fromLonLat([-22.9, 0]),
       }),
     });
 
+    // const popup = new Overlay.Popup();
+    // this.addOverley(popup);
     this.map.addInteraction(selectClick);
-    selectClick.on("select", (evt) => {
-      // alert(`Escola: ${evt.selected[0].get('escola')} \nQtd alunos: ${evt.selected[0].get('alunos')}` +
-      //       evt.selected[0].get('geometry').getCoordinates().toString())
-      let coordinate = evt.selected[0].get("geometry").getCoordinates();
-      content.innerHTML = `<p>Escola: ${evt.selected[0].get(
-        "escola"
-      )} \nQtd alunos: ${evt.selected[0].get("alunos")}</p>`;
-      overlay.setPosition(coordinate);
-      //console.log(evt);
+    
+    /****** CONFIGURAÇÃO DOS EVENTOS DO MAPA ******/
+    selectClick.on('select', function (evt) {
+      // const coordinate = evt.coordinate;
+      // const hdms = toLonLat(coordinate);
+      // content.innerHTML = '<p>You clicked here:</p><code>' + hdms + '</code>';
+      // overlay.setPosition(coordinate);
+      if(evt.selected[0] !== null){
+        let coordinate = evt.selected[0].get("geometry").getCoordinates();
+        content.innerHTML = `<p>Escola: ${evt.selected[0].get(
+          "escola"
+          )} \nQtd alunos: ${evt.selected[0].get("alunos")}</p>`;
+        overlay.setPosition(coordinate);
+        evt.preventDefault();
+      } else{
+        overlay.setPosition(undefined);
+        // console.log("OK")
+      }
     });
-    this.map.on('singleclick', (e) => {
-      const coordinates = e.coordinate;
-      httpClient.sendMapInfo({lat: coordinates[1], lon: coordinates[0]}); 
-    });
+
+    // this.map.on("selected", (evt) => {
+    //   // alert(`Escola: ${evt.selected[0].get('escola')} \nQtd alunos: ${evt.selected[0].get('alunos')}` +
+    //   //       evt.selected[0].get('geometry').getCoordinates().toString())
+    //   let coordinate = evt.selected[0].get("geometry").getCoordinates();
+    //   content.innerHTML = `<p>Escola: ${evt.selected[0].get(
+    //     "escola"
+    //   )} \nQtd alunos: ${evt.selected[0].get("alunos")}</p>`;
+    //   overlay.setPosition(coordinate);
+    //   //console.log(evt);
+    // });
+
+    // selectClick.on("select", (evt) => {
+    //   // alert(`Escola: ${evt.selected[0].get('escola')} \nQtd alunos: ${evt.selected[0].get('alunos')}` +
+    //   //       evt.selected[0].get('geometry').getCoordinates().toString())
+    //   let coordinate = evt.selected[0].get("geometry").getCoordinates();
+    //   content.innerHTML = `<p>Escola: ${evt.selected[0].get(
+    //     "escola"
+    //   )} \nQtd alunos: ${evt.selected[0].get("alunos")}</p>`;
+    //   overlay.setPosition(coordinate);
+    //   //console.log(evt);
+    // });
+    // this.map.on("singleclick", (e) => {
+    //    const coordinates = e.coordinate;
+    //    httpClient.sendMapInfo({ lat: coordinates[1], lon: coordinates[0] });
+    // });
   },
 };
-
 </script>
 
 <style scoped>
-  #ol-map {
-    width: 100%;
-    height: 500px;
-  }
+#ol-map {
+  width: 100%;
+  height: 500px;
+}
 
-  .ol-popup {
-    position: absolute;
-    background-color: white;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
-    padding: 15px;
-    border-radius: 10px;
-    border: 1px solid #cccccc;
-    bottom: 12px;
-    left: -50px;
-    min-width: 280px;
-  }
-  .ol-popup:after,
-  .ol-popup:before {
-    top: 100%;
-    border: solid transparent;
-    content: " ";
-    height: 0;
-    width: 0;
-    position: absolute;
-    pointer-events: none;
-  }
-  .ol-popup:after {
-    border-top-color: white;
-    border-width: 10px;
-    left: 48px;
-    margin-left: -10px;
-  }
-  .ol-popup:before {
-    border-top-color: #cccccc;
-    border-width: 11px;
-    left: 48px;
-    margin-left: -11px;
-  }
-  .ol-popup-closer {
-    text-decoration: none;
-    position: absolute;
-    top: 2px;
-    right: 8px;
-  }
-  .ol-popup-closer:after {
-    content: "✖";
-  }
+.ol-popup {
+  position: absolute;
+  background-color: white;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  padding: 15px;
+  border-radius: 10px;
+  border: 1px solid #cccccc;
+  bottom: 12px;
+  left: -50px;
+  min-width: 280px;
+}
+.ol-popup:after,
+.ol-popup:before {
+  top: 100%;
+  border: solid transparent;
+  content: " ";
+  height: 0;
+  width: 0;
+  position: absolute;
+  pointer-events: none;
+}
+.ol-popup:after {
+  border-top-color: white;
+  border-width: 10px;
+  left: 48px;
+  margin-left: -10px;
+}
+.ol-popup:before {
+  border-top-color: #cccccc;
+  border-width: 11px;
+  left: 48px;
+  margin-left: -11px;
+}
+.ol-popup-closer {
+  text-decoration: none;
+  position: absolute;
+  top: 2px;
+  right: 8px;
+}
+.ol-popup-closer:after {
+  content: "✖";
+}
 </style>
