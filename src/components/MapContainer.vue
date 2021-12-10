@@ -197,16 +197,14 @@ export default {
     this.map.addInteraction(selectClick);
     
     /****** CONFIGURAÇÃO DOS EVENTOS DO MAPA ******/
-    selectClick.on('select', function (evt) {
+selectClick.on('select', function (evt) {
       // const coordinate = evt.coordinate;
       // const hdms = toLonLat(coordinate);
       // content.innerHTML = '<p>You clicked here:</p><code>' + hdms + '</code>';
       // overlay.setPosition(coordinate);
       if(evt.selected[0] !== null){
         let coordinate = evt.selected[0].get("geometry").getCoordinates();
-        content.innerHTML = `<p>Escola: ${evt.selected[0].get(
-          "escola"
-          )} \nQtd alunos: ${evt.selected[0].get("alunos")}</p>`;
+        content.innerHTML = `<p>Escola: IFSP</p>`;
         overlay.setPosition(coordinate);
         evt.preventDefault();
       } else{
